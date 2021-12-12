@@ -110,7 +110,6 @@ void enemy_status()
 		cout << " 현재 마나   : " << Row[3] << endl;
 		cout << " 현재 공격력 : " << Row[4] << endl;
 		cout << " 현재 방어력 : " << Row[5] << endl;
-		cout << " 소지금      : " << Row[6] << endl;
 		cout << "------------------------------------" << endl << endl;
 	}
 	mysql_free_result(Result);
@@ -242,11 +241,11 @@ void my_item()
 	while ((Row = mysql_fetch_row(Result)) != NULL)
 	{
 		cout << "-----------아이템 현황-----------" << endl;
-		cout << " 아이템 이름 : " << Row[2] << endl;
-		cout << " 추가 체력   : " << Row[3] << endl;
-		cout << " 추가 마나   : " << Row[4] << endl;
-		cout << " 추가 공격력 : " << Row[5] << endl;
-		cout << " 추가 방어력 : " << Row[6] << endl;
+		cout << " 아이템 이름 : " << Row[1] << endl;
+		cout << " 추가 체력   : " << Row[2] << endl;
+		cout << " 추가 마나   : " << Row[3] << endl;
+		cout << " 추가 공격력 : " << Row[4] << endl;
+		cout << " 추가 방어력 : " << Row[5] << endl;
 		cout << "---------------------------------" << endl << endl;
 	}
 	mysql_free_result(Result);
@@ -485,7 +484,11 @@ void buy_item()
 		player_cost = atoi(Row[6]);
 	}
 
-	if (item_cost > player_cost) cout << "소지금이 부족합니다!" << endl;
+	if (item_cost > player_cost)
+	{
+		cout << "소지금이 부족합니다!" << endl;
+		return;
+	}
 	else
 	{
 		cout << "아이템을 구매하였습니다!" << endl;
@@ -508,6 +511,16 @@ void buy_item()
 	}
 
 	mysql_free_result(Result);
+
+	// 플레이어 아이템 추가
+	char Query_insert[100] = "INSERT INTO player.item SELECT * FROM shop.shop WHERE Item_ID = 300";
+	strcat(Query_insert, buyitem);
+	Stat = mysql_query(ConnPtr, Query_insert);
+	if (Stat != 0)
+	{
+		cout << stderr << "Mysql query error : " << mysql_error(&Conn) << endl;
+		return;
+	}
 
 	mysql_close(ConnPtr);
 }
