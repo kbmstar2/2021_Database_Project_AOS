@@ -452,6 +452,15 @@ void buy_item()
 
 	cout << "\n\n사실 아이템을 입력해주세요! (1 ~ 6) : ";
 	cin >> buyitem;
+
+	int item_HP;
+	int item_MP;
+	int item_AP;
+	int item_DP;
+	char temp_HP[3] = "";
+	char temp_MP[3] = "";
+	char temp_AP[3] = "";
+	char temp_DP[3] = "";
 	// 살 아이템 정보를 불러오기 위한 쿼리
 	char Query_buy[100] = "SELECT * FROM shop.shop WHERE Item_ID = 300";
 	strcat(Query_buy, buyitem);
@@ -465,6 +474,10 @@ void buy_item()
 	Result = mysql_store_result(ConnPtr);
 	while ((Row = mysql_fetch_row(Result)) != NULL)
 	{
+		item_HP = atoi(Row[2]);
+		item_MP = atoi(Row[3]);
+		item_AP = atoi(Row[4]);
+		item_DP = atoi(Row[5]);
 		item_cost = atoi(Row[6]);
 	}
 	mysql_free_result(Result);
@@ -496,7 +509,6 @@ void buy_item()
 	}
 
 	// 플레이어 소지금 값 변경
-
 	char* cost_alter = new char[1];
 	const char* Query_where = " WHERE Player_ID = 1";
 	char Query_cost[100] = "UPDATE player.playerstatus SET Player_Cost = ";
@@ -513,7 +525,7 @@ void buy_item()
 	mysql_free_result(Result);
 
 	// 플레이어 아이템 추가
-	char Query_insert[100] = "INSERT INTO player.item SELECT * FROM shop.shop WHERE Item_ID = 300";
+	char Query_insert[200] = "INSERT INTO player.item SELECT * FROM shop.shop WHERE Item_ID = 300";
 	strcat(Query_insert, buyitem);
 	Stat = mysql_query(ConnPtr, Query_insert);
 	if (Stat != 0)
@@ -522,7 +534,38 @@ void buy_item()
 		return;
 	}
 
+	// 플레이어 스테이터스 변경
+	char Query_status[500] = "UPDATE player.playerstatus SET ";
+	char Query_HP[400] = "Player_HP = Player_HP + ";
+	_itoa(item_HP, temp_HP, 10);
+	strcat(Query_HP, temp_HP);
+	char Query_MP[50] = ", Player_MP = Player_MP + ";
+	_itoa(item_MP, temp_MP, 10);
+	strcat(Query_MP, temp_MP);
+	strcat(Query_HP, Query_MP);
+	char Query_AP[50] = ", Player_AP = Player_AP + ";
+	_itoa(item_AP, temp_AP, 10);
+	strcat(Query_AP, temp_AP);
+	strcat(Query_HP, Query_AP);
+	char Query_DP[50] = ", Player_DP = Player_DP + ";
+	_itoa(item_DP, temp_DP, 10);
+	strcat(Query_DP, temp_DP);
+	strcat(Query_HP, Query_DP);
+
+	strcat(Query_status, Query_HP);
+	strcat(Query_status, Query_where);
+
+	Stat = mysql_query(ConnPtr, Query_status);
+	if (Stat != 0)
+	{
+		cout << stderr << "Mysql query error : " << mysql_error(&Conn) << endl;
+		return;
+	}
+
+	cout << endl << "플레이어 아이템 추가 및 스테이터스 변경 완료! 창을 확인해보세요." << endl << endl;
+
 	mysql_close(ConnPtr);
+	return;
 }
 
 int main()
